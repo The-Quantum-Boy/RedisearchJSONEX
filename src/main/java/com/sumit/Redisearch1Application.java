@@ -38,7 +38,6 @@ public class Redisearch1Application implements ApplicationRunner {
 
 	@Override
 	public void run(ApplicationArguments args) throws Exception {
-		// Delete all existing orders and the index
 		orderRepo.deleteAll();
 		try {
 			jedis.ftDropIndex("order-idx");
@@ -46,18 +45,14 @@ public class Redisearch1Application implements ApplicationRunner {
 			System.out.println("Index is not available ");
 		}
 
-		// Read the order data from the JSON file
 		String data = new String(resourceFile.getInputStream().readAllBytes());
 
-		// Deserialize the JSON data into an array of OrderData objects
 		ObjectMapper objectMapper = new ObjectMapper()
 				.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		Order[] orders = objectMapper.readValue(data, Order[].class);
 
-		// Save the orders to the database
 		Arrays.stream(orders).forEach(orderRepo::save);
 
-		// Create the RediSearch index
 		Schema schema = new Schema()
 				.addField(new Schema.Field(FieldName.of("$.commodityCode").as("commodityCode"), Schema.FieldType.TEXT));
 
